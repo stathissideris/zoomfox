@@ -1,0 +1,336 @@
+<html>
+<body onLoad="init()" onResize="refreshFocusBox()" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+
+<!-- image -->
+<img src="test.jpg" id="image" />
+
+
+<!-- zoom controls -->
+<div id="zoomControls" style="position: fixed; top: 5px; right: 5px; border: solid 1px; padding: 6px; background-color: #D4D0C8; font-size: 8pt; font-family: tahoma, sans-serif;">
+
+<div align="center"><img src="test.jpg" id="thumb" style="border:solid 1px;" width="0" height="0"/></div>
+
+<div style="padding-top: 6px" id="zoomControlButtons">
+<!-- <img src="images/position_ne.png" id="positionIcon" onClick="moveControlToNextPosition();" /> -->
+<img src="images/position_ne.png" id="positionIcon" border="0" usemap="positionControlMap" style="; vertical-align: -2px"/>
+<map name="positionControlMap">
+<area shape="rect" coords="0,0,9,9" href="javascript:moveControlToPosition(0);">
+<area shape="rect" coords="10,0,19,9" href="javascript:moveControlToPosition(1);">
+<area shape="rect" coords="10,10,19,19" href="javascript:moveControlToPosition(2);">
+<area shape="rect" coords="0,10,9,19" href="javascript:moveControlToPosition(3);">
+</map>
+
+
+<input type="text" size="4" value="100%" onChange="zoomToValue()" id="zoomFactorBox" style="border: inset 1px; font-size: x-small; font-family: tahoma, sans-serif; vertical-align:4px"/>
+
+<input type="button" value="Fit" onClick="zoomToFit()" style="border: outset 1px; font-size: x-small; font-family: tahoma, sans-serif; vertical-align:4px"/>
+
+<input type="button" value="1:1" onClick="zoomTo(100)" style="border: outset 1px; font-size: x-small; font-family: tahoma, sans-serif; vertical-align:4px"/>
+
+<a href="javascript:zoomOut()"><img src="images/icon_unzoom.png" border="0"/></a>
+
+<a href="javascript:zoomIn()"><img src="images/icon_zoom.png" border="0"/></a>
+
+<img src="images/icon_up.png" id="collapseIcon" onClick="toggleCollapse();" />
+</div>
+
+</div>
+
+<!-- in focus box -->
+<div id="inFocusBox" style="position: fixed; top: 5px; left: 5px; border: solid 2px red; width:20px; height:20px"><img id="inFocusBoxPixel" src="images/spacer.png" width="20" height="20"/></div>
+
+
+
+<script>
+
+var mouseX;
+var mouseY;
+var isMouseDownInImage = 0;
+var isMouseDownInThumb = 0;
+var currentZoom = 100;
+var image = document.getElementById('image');
+var inFocusBox = document.getElementById('inFocusBox');
+var inFocusBoxPixel = document.getElementById('inFocusBoxPixel');
+var thumb = document.getElementById('thumb');
+var originalWidth = image.width;
+var originalHeight = image.height;
+var scrollPositionX = 0;
+var scrollPositionY = 0;
+var expandIconURL = 'images/icon_down.png';
+var collapseIconURL = 'images/icon_up.png';
+var positionNames = ['nw', 'ne', 'se', 'sw'];
+var isCollapsed = 0;
+
+
+//configurable options
+var currentControlPosition = 1;
+var pixelLimit = 4000;
+var thumbInitSize = 200;
+var zoomStep = 10;
+
+
+
+window.onmousemove = easyScroll;
+window.onmouseup = mouseUp;
+image.onmousedown = mouseDownImage;
+thumb.onmousedown = mouseDownInThumb;
+inFocusBoxPixel.onmousedown = mouseDownInThumb;
+
+function init(){
+  if(originalWidth > originalHeight){
+    thumb.width = thumbInitSize;
+	thumb.height = originalHeight*thumbInitSize/originalWidth;
+  } else {
+    thumb.height = thumbInitSize;
+	thumb.width = originalWidth*thumbInitSize/originalHeight;
+  }
+
+  moveControlToPosition(currentControlPosition);
+  refreshFocusBox();
+}
+
+function toggleCollapse(){
+
+  icon = document.getElementById('collapseIcon');
+  controls = document.getElementById('zoomControlButtons');
+
+  if(isCollapsed == 0){
+    isCollapsed = 1;
+	thumb.style.display = 'none';
+	inFocusBox.style.display = 'none';
+	icon.src = 'images/icon_down.png';
+	controls.style.padding = '0px 0px 0px 0px';
+  } else {
+    isCollapsed = 0;
+	thumb.style.display = 'block';
+	inFocusBox.style.display = 'block';
+	icon.src = 'images/icon_up.png';
+	controls.style.padding = '6px 0px 0px 0px';
+	refreshFocusBox();
+  }
+}
+
+
+function moveControlToNextPosition(){
+  currentControlPosition++;
+  if(currentControlPosition == 4) {currentControlPosition = 0;}
+  moveControlToPosition(currentControlPosition);
+}
+
+function moveControlToPosition(position){
+  icon = document.getElementById('positionIcon');
+
+  icon.src = "images/position_"+positionNames[position]+".png";
+
+  controls = document.getElementById('zoomControls');
+  if(position == 0){
+    controls.style.bottom = '';
+	controls.style.right = '';
+    controls.style.left = '5px';
+    controls.style.top = '5px';
+  } else if(position == 1){
+    controls.style.left = '';
+	controls.style.bottom = '';
+    controls.style.right = '5px';
+    controls.style.top = '5px';
+  } else if(position == 2){
+    controls.style.left = '';
+	controls.style.top = '';
+    controls.style.right = '5px';
+    controls.style.bottom = '5px';
+  } else if(position == 3){
+    controls.style.top = '';
+	controls.style.right = '';
+    controls.style.left = '5px';
+    controls.style.bottom = '5px';
+  }
+
+  refreshFocusBox();
+}
+
+function refreshFocusBox(){
+
+  factor = image.width / thumb.width;
+
+  var w, h;
+
+  //width
+  if(image.width < window.innerWidth){
+    inFocusBox.style.left = findPosX(thumb) + 1;
+	w = thumb.width - 2;
+  } else {
+    inFocusBox.style.left = findPosX(thumb) + window.pageXOffset/factor + 1;
+    w = window.innerWidth / factor - 3;
+  }
+
+  //height
+  if(image.height < window.innerHeight){
+    inFocusBox.style.top = findPosY(thumb) + 1;
+    h = thumb.height - 2;
+  } else {
+    inFocusBox.style.top = findPosY(thumb) + window.pageYOffset/factor + 1;    
+    h = window.innerHeight / factor - 2;
+  }
+
+  inFocusBox.style.width = w;
+  inFocusBox.style.height = h;
+  inFocusBoxPixel.width = w + 1;
+  inFocusBoxPixel.height = h;
+}
+
+function easyScroll(event){
+  mouseXold = mouseX;
+  mouseYold = mouseY;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+
+  if(isMouseDownInThumb){
+    thumbScroll(event);
+  } else if(isMouseDownInImage){
+    dx = mouseX - mouseXold;
+    dy = mouseY - mouseYold;
+    scrollBy(-dx, -dy);
+	refreshFocusBox();
+  }
+}
+
+function thumbScroll(event){
+  mouseXold = mouseX;
+  mouseYold = mouseY;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+
+  thumbX = findPosX(thumb);
+  thumbY = findPosY(thumb);
+  factor = image.width / thumb.width;
+
+  if(isMouseDownInThumb){
+    x = mouseX - thumbX - getStyleWidth(inFocusBox) / 2;
+	y = mouseY - thumbY - getStyleHeight(inFocusBox) / 2;
+
+	//alert((inFocusBox.style.width/2)+", "+y);
+
+	x *= factor;
+	y *= factor;
+	scrollTo(x, y);
+	refreshFocusBox();
+  }
+}
+
+function mouseDownInThumb(){
+  isMouseDownInThumb = 1;
+  image.style.cursor="move";
+  return false;
+}
+
+function mouseDownImage(){
+  isMouseDownInImage = 1;
+  image.style.cursor="move";
+  return false;
+}
+
+function mouseUp(){
+  isMouseDownInImage = 0;
+  isMouseDownInThumb = 0;
+  image.style.cursor="default";
+}
+
+function zoomToValue(){
+  box = document.getElementById('zoomFactorBox');
+  factor = box.value;
+
+  if(factor.match("\\d+")){
+    factor = factor.match("\\d+");
+    if(factor < 1) {
+      factor=1;
+    }
+    zoomTo(factor);
+  } else {
+    alert("Please provide a number.");
+  }
+}
+
+function zoomToFit(){
+
+  factorX = 100*window.innerWidth/originalWidth;
+  factorY = 100*window.innerHeight/originalHeight;
+
+  zoomTo(Math.min(factorX, factorY));
+}
+
+function zoomIn(){
+  zoomTo(currentZoom + zoomStep);
+}
+
+function zoomOut(){
+  if(currentZoom > zoomStep){
+    zoomTo(currentZoom - zoomStep);
+  }
+}
+
+function zoomTo(factor){
+  if(factor < 1) return;
+
+  if( originalWidth*factor/100 > pixelLimit
+      || originalHeight*factor/100 > pixelLimit ) {
+    return;
+  }
+
+  image.width = originalWidth*factor/100;
+  image.height = originalHeight*factor/100;
+  currentZoom = factor;
+  box = document.getElementById('zoomFactorBox');
+
+  box.value = (Math.round(factor*100)/100)+"%";
+
+  refreshFocusBox();
+}
+
+function getStyleWidth(obj){
+  if(obj == null) {return null;}
+  return obj.style.width.match("\\d+");
+}
+
+function getStyleHeight(obj){
+  if(obj == null) {return null;}
+  return obj.style.height.match("\\d+");
+}
+
+
+function findPosX(obj)
+{
+	var curleft = 0;
+	if (obj.offsetParent)
+	{
+		while (obj.offsetParent)
+		{
+			curleft += obj.offsetLeft
+			obj = obj.offsetParent;
+		}
+	}
+	else if (obj.x)
+		curleft += obj.x;
+	return curleft;
+}
+
+function findPosY(obj)
+{
+	var curtop = 0;
+	if (obj.offsetParent)
+	{
+		while (obj.offsetParent)
+		{
+			curtop += obj.offsetTop
+			obj = obj.offsetParent;
+		}
+	}
+	else if (obj.y)
+		curtop += obj.y;
+	return curtop;
+}
+
+</script>
+
+</body>
+</html>

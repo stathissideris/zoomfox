@@ -1,0 +1,70 @@
+possible solution for replacing image-viewing completely
+
+	/*var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+
+	var windowObserver = {
+		observe: function(subject, topic, data){
+			var consoleService = Components.classes['@mozilla.org/consoleservice;1']
+                    .getService(Components.interfaces.nsIConsoleService);
+			consoleService.logStringMessage(subject+": "+topic);
+			window.dump(subject+": "+topic);
+		}
+	};	
+
+	observerService.addObserver(windowObserver, "xpcom-autoregistration", false);*/
+
+
+	/*var progressListener = {
+		onLocationChange : function(listener,request,location){
+			alert("loaded!");
+		},
+		QueryInterface : function(iid) {},
+		onStateChange : function(listener,request,flag,status){},
+		onProgressChange : function(a,b,c,d,e,f){},
+		onStatusChange : function(a,b,c,d){},
+		onSecurityChange : function(a,b,c){},
+		onLinkIconAvailable : function(a){},
+		setJSStatus : function(status){},
+		setJSDefaultStatus : function(status){},
+		setOverLink : function(link){},
+		GetWeakReference : function() { return this; }
+	};
+
+	browser = document.getElementById("browser");
+	browser.webProgress.addProgressListener(progressListener, 
+				  		Components.interfaces.nsIWebProgress.NOTIFY_ALL);*/
+
+
+----------------------------------------------------
+
+checks when documents are loaded, but does not fire on images:
+
+		//var appcontent = window.document.getElementById("appcontent");
+		//alert(appcontent);
+		//if(appcontent){
+			//appcontent.addEventListener("DOMContentLoaded", goToViewer, false);
+			//document.addEventListener("DOMContentLoaded", goToViewer, null);
+			//document.addEventListener("onload", goToViewer, null);
+		//}
+
+----------------------------------------------------
+
+status image code:
+
+		/*function statusImageClicked() {
+			var statusImage = window.document.getElementById("zf-status-image");
+			zfShowZoomControls = !zfShowZoomControls;
+			if(zfShowZoomControls){
+				statusImage.src = "chrome://zoomfox/content/icon_zoomfox_on.png";
+			} else {
+				statusImage.src = "chrome://zoomfox/content/icon_zoomfox_off.png";
+			}
+			//prefManager.setValue("showZoomControls", zfShowZoomControls);
+		}*/
+
+
+    <!-- <statusbar id="status-bar">
+        <statusbarpanel id="zf-status" insertafter="livemark-button">
+            <image id="zf-status-image" src="chrome://zoomfox/content/icon_zoomfox_on.png"/>
+        </statusbarpanel>
+    </statusbar> -->

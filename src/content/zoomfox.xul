@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<overlay id="zoomfoxOverlay" 
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <script type="application/x-javascript">
+    <![CDATA[
+
+	function zoomFoxMenu() {
+		if(!gContextMenu) {return;}
+
+		zoomFoxMenu = document.getElementById("zoomFoxMenuItem");
+		zoomFoxMenu.hidden = !gContextMenu.onImage;
+	}
+
+	function jc(msg) {
+		var consoleService = Components.classes['@mozilla.org/consoleservice;1']
+                   .getService(Components.interfaces.nsIConsoleService);
+		consoleService.logStringMessage(msg);
+	}
+
+	var imageURL;
+	var doc;
+	
+	function goToViewer() {
+		if(!gContextMenu) {jc("no context menu");return;}
+		imageURL = document.popupNode.src;
+		jc("Viewing: "+imageURL);
+
+		var tab = gBrowser.selectedTab = gBrowser.addTab("chrome://zoomFox/content/viewer.html");
+		var browser = gBrowser.getBrowserForTab(tab);
+		
+		browser.addEventListener("DOMContentLoaded",
+			function(event) {
+				doc = event.originalTarget;
+				document.getElementById('urlbar').textValue = imageURL;
+				doc.getElementById("image").setAttribute('src', imageURL);
+				doc.getElementById("thumb").setAttribute('src', imageURL);
+			},
+			true);
+		
+	}
+
+	function getContents(aURL){
+		var ioService=Components.classes["@mozilla.org/network/io-service;1"]
+	    	.getService(Components.interfaces.nsIIOService);
+		var scriptableStream=Components
+			.classes["@mozilla.org/scriptableinputstream;1"]
+			.getService(Components.interfaces.nsIScriptableInputStream);
+
+		var channel=ioService.newChannel(aURL,null,null);
+		var input=channel.open();
+		scriptableStream.init(input);
+		var str=scriptableStream.read(input.available());
+		scriptableStream.close();
+		input.close();
+		return str;
+	}
+
+	window.addEventListener("load", function() {
+
+		var zfShowZoomControls = true;
+		//var prefManager = new ZF_PrefManager();
+		//var statusImage = window.document.getElementById("zf-status-image");
+		//statusImage.addEventListener("mousedown", statusImageClicked, false);
+
+
+		document.getElementById("contentAreaContextMenu").addEventListener("popupshowing", zoomFoxMenu, false);
+		
+	}, false); // end window.addEventListener("load"...)
+
+    ]]>
+    </script> 
+
+	<popup id="contentAreaContextMenu">
+		<menuitem
+			id="zoomFoxMenuItem"
+			label="View with zoomFox"
+			hidden="true"
+			insertbefore="context-sep-copyimage"
+			oncommand="goToViewer();"/>
+	</popup>
+
+</overlay>

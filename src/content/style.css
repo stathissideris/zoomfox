@@ -1,0 +1,182 @@
+html>body {
+	overflow:scroll;
+	background-color: rgb(64,64,64);
+}
+
+#image {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+
+#thumb {
+	border:solid 1px;
+	background-color: #000000;
+	-moz-border-radius: 4px;
+}
+
+#inFocusBox {
+	position: fixed;
+	top: 5px;
+	left: 5px;
+	border: solid 2px red;
+	width:20px;
+	height:20px;
+	-moz-border-radius: 4px;
+}
+
+#zoomControls {
+	-moz-border-radius: 0.9em;
+	-moz-box-shadow: 0pt 0pt 0.5em black;
+	position: fixed;
+	top: 0.7em;
+	right: 0.7em;
+	padding: 0.9em;
+	padding-bottom: 0.5em;
+	background-color: rgba(0,0,0,0.4);
+	font-size: 8pt;
+	font-family: tahoma, sans-serif;
+}
+
+input, button {
+	text-align: center;
+	-moz-border-radius: 0.4em;
+	background-color: rgba(0,0,0,0.3);
+	padding-top: 0.3em;
+	padding-bottom: 0.4em;
+	font-size: 1em;
+	font-family: tahoma, sans-serif;
+	color: #ffffff;
+	border: 1px solid rgba(120,120,120,0.6);
+	height: 2.2em;
+}
+
+input:hover, button:hover {
+	background-color: rgba(100,100,100,0.4);
+}
+
+#zoomTextField {
+	vertical-align: 0.15em;
+}
+
+#zoomControlButtons {
+	text-align: center;
+}
+
+#zoom-controls-handle {
+	height: 14px;
+	-moz-border-radius: 6px;
+	margin-bottom: 0.4em;
+	background-color: rgba(80,80,80,0.3);
+	border: 1px solid rgba(0,0,0,0.6);
+}
+
+#zoom-controls-handle:hover {
+	background-color: rgba(100,100,100,0.4);
+}
+
+#advanced-controls {
+	/*display: none;*/
+	color: white;
+}
+
+#background-button-set {
+	text-align: center;
+	margin-top: 0.7em;
+	margin-bottom: 0.5em;
+	padding-left: 0.9em;
+}
+
+#background-button-set>div {
+	margin-left: 0.4em;
+	margin-right: 0.4em;
+	margin-bottom: 0.6em;
+	width: 2.3em;
+	height: 2.3em;
+	float: left;
+	-moz-border-radius: 0.4em;
+}
+
+#background-button-set>div:hover, .background-button-selected {
+	-moz-box-shadow: 0pt 0pt 0.6em white;
+}
+
+.bg-default, .bg-default:hover{background-color: rgb(64,64,64);}
+.bg-black, .bg-black:hover{background-color: black;}
+.bg-white, .bg-white:hover{background-color: white;}
+.bg-grey, .bg-grey:hover{background-color: rgb(128,128,128);}
+.bg-squares, .bg-squares:hover{background-image: url(bg_boxes.png); background-position: center}
+
+
+fieldset {
+	border: 1px solid rgb(0,0,0);
+	-moz-border-radius: 0.7em;
+	margin-top: 1em;
+	margin-bottom: 0.5em;
+	padding-top: 7px;
+}
+
+legend {
+	color: rgb(200, 200, 200);
+	font-weight: bold;
+}
+
+fieldset#rotate-fieldset {
+	text-align: center;
+}
+
+#rotate-control {
+	margin-left: 25px;
+	float: left;
+}
+
+#rotate-degrees {
+	font-size: 30px;
+	font-family: Georgia, serif;
+	margin-left: 0.15em;
+	color: rgb(220, 220, 220);
+	text-shadow: 1pt 1pt 0.2em black;
+	width: 2.7em;
+	text-align: center;
+	float: left;
+	margin-top: 5px;
+}
+
+.expander {
+	text-align: center;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	margin-top: 1px;
+	margin-bottom: 1px;
+	height: 8px;
+	background-repeat:no-repeat;
+	background-position:center;
+	clear:both;
+	-moz-border-radius: 3px;
+}
+
+.expander-round-bottom {
+	-moz-border-radius-bottomleft: 8px;
+	-moz-border-radius-bottomright: 8px;
+	-moz-border-radius-topleft: 2px;
+	-moz-border-radius-topright: 2px;
+}
+
+.expander-round-top {
+	-moz-border-radius-topleft: 8px;
+	-moz-border-radius-topright: 8px;
+	-moz-border-radius-bottomleft: 2px;
+	-moz-border-radius-bottomright: 2px;
+}
+
+.expander-down-arrow {
+	background-image: url('icon_down.png');
+}
+
+.expander-up-arrow {
+	background-image: url('icon_up.png');
+}
+
+.expander-hover {
+	background-color: rgba(150,150,150,0.5);
+}

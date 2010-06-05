@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+  <Description about="urn:mozilla:install-manifest">
+
+    <em:name>zoomFox</em:name>
+    <em:id>{79fcaa13-5f29-4c33-aad7-6c48c175760a}</em:id>
+    <em:version>0.85</em:version>
+
+	<em:description>Adds a context menu item for viewing images using advanced controls (thumb view, zoom, easy scroll etc).</em:description>
+	<em:creator>Stathis Sideris</em:creator>
+	<em:creatorURL>Stathis Sideris</em:creatorURL>
+	<em:iconURL>chrome://zoomFox/content/icon.png</em:iconURL>
+    <!-- <em:aboutURL>chrome://zoomFox/content/about.xul</em:aboutURL> -->
+
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+        <em:minVersion>0.9</em:minVersion>
+        <em:maxVersion>3.5.*</em:maxVersion>
+      </Description>
+    </em:targetApplication> 
+
+    <em:file>
+      <Description about="urn:mozilla:extension:file:zoomFox.jar">
+        <em:package>content/</em:package>
+      </Description>
+    </em:file>
+
+  </Description>
+
+</RDF>

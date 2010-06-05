@@ -1,0 +1,32 @@
+<overlay id="zoomfoxAbout" 
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+	<window>
+		<hbox style="background-color: #FFFFFF;"><image src="logo.png" style="background-color: #FFFFFF;"/></hbox>
+
+		<separator class="groove-thin"/>
+		<separator />
+
+		<label value="Created by:" style="font-weight: bold"/>
+		<label value="Stathis Sideris" />
+	
+		<separator style="height: 3em"/>
+
+		<description>
+			This extension is released under the GNU General Public License.
+		</description>
+
+		<separator />
+		<separator class="groove-thin"/>
+		<separator />
+
+		<hbox>
+			<spacer flex="1" />
+			<button class="dialog-button" label="Close" default="true"/>
+		</hbox>
+
+	</window>
+
+</overlay>

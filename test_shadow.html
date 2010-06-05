@@ -1,0 +1,130 @@
+<html>
+<!-- <body onLoad="setTimeout('resize()', 100);"> -->
+<body onLoad="init()" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+<img src="test.jpg" id="image" />
+
+<div style="position: fixed; top: 5px; left: 5px;">
+
+<table cellspacing="0" cellpadding="0">
+<tr>
+<td><img src="images/shadow_nw.png" /></td>
+<td background="images/shadow_n.png"><img src="images/spacer.png" /></td>
+<td><img src="images/shadow_ne.png" /></td>
+</tr>
+
+<tr>
+<td background="images/shadow_w.png"><img src="images/spacer.png" /></td>
+
+<td>
+<div style="border: outset 1px; padding: 5px; background-color: #D4D0C8">
+<img src="test.jpg" id="thumb" style="border:solid 1px" width="" height="0"/><br/>
+<input type="text" size="3" value="100%" onChange="zoomToValue()" id="zoomFactorBox" style="font-size: x-small; border: inset 1px; vertical-align: 40%"/>
+<a href="javascript:zoomOut()"><img src="images/icon_unzoom.png" border="0"/></a>
+<a href="javascript:zoomIn()"><img src="images/icon_zoom.png" border="0"/></a>
+</div>
+</td>
+
+<td background="images/shadow_e.png"><img src="images/spacer.png" /></td>
+</tr>
+
+
+<tr>
+<td><img src="images/shadow_sw.png" /></td>
+<td background="images/shadow_s.png"><img src="images/spacer.png" /></td>
+<td><img src="images/shadow_se.png" /></td>
+</tr>
+
+</table>
+
+</div>
+
+
+<script>
+
+var mouseX;
+var mouseY;
+var isMouseDown = 0;
+var currentZoom = 100;
+var image = document.getElementById('image');
+var originalWidth = image.width;
+var originalHeight = image.height;
+var zoomStep = 10;
+var thumbInitSize = 200;
+
+window.onmousemove = easyScroll;
+window.onmouseup = mouseUp;
+image.onmousedown = mouseDown;
+
+function init(){
+  thumb = document.getElementById('thumb');
+  if(originalWidth > originalHeight){
+    thumb.width = thumbInitSize;
+	thumb.height = originalHeight*thumbInitSize/originalWidth;
+  } else {
+    thumb.height = thumbInitSize;
+	thumb.width = originalWidth*thumbInitSize/originalHeight;
+  }
+}
+
+function easyScroll(event){
+  mouseXold = mouseX;
+  mouseYold = mouseY;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+  if(isMouseDown){
+    dx = mouseX - mouseXold;
+    dy = mouseY - mouseYold;
+    scrollBy(-dx, -dy);
+  }
+}
+
+function mouseDown(){
+  isMouseDown = 1;
+  image.style.cursor="move";
+  return false;
+}
+
+function mouseUp(){
+  isMouseDown = 0;
+  image.style.cursor="default";
+}
+
+function zoomToValue(){
+  box = document.getElementById('zoomFactorBox');
+  factor = box.value;
+
+  if(factor.match("\\d+")){
+    factor = factor.match("\\d+");
+    if(factor < 1) {
+      factor=1;
+    }
+    zoomTo(factor);
+  } else {
+    alert("Please provide a number.");
+  }
+}
+
+function zoomIn(){
+  zoomTo(currentZoom + zoomStep);
+}
+
+function zoomOut(){
+  if(currentZoom > zoomStep){
+    zoomTo(currentZoom - zoomStep);
+  }
+}
+
+function zoomTo(factor){
+  if(factor < 1) return;
+  image.width = originalWidth*factor/100;
+  image.height = originalHeight*factor/100;
+  currentZoom = factor;
+  box = document.getElementById('zoomFactorBox');
+  box.value = factor+"%";
+}
+
+</script>
+
+</body>
+</html>

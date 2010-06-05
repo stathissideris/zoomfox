@@ -1,0 +1,63 @@
+<overlay id="zoomfoxConfiguration" 
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<!--
+var currentControlPosition = 1;
+var pixelLimit = 4000;
+var thumbInitSize = 200;
+var zoomStep = 10;
+-->
+
+
+	<window>
+		<hbox><image src="logo.png" style="background-color: #FFFFFF;"/></hbox>
+		<separator class="groove-thin"/>
+		<separator />
+
+
+		<grid>
+			<columns>
+				<column flex="0" />
+				<column flex="1" />
+			</columns>
+
+			<rows>
+
+				<row><label value="Thumbnail size:" /><hbox><textbox id="thumbInitSize" size="4"/><label value="pixels" /></hbox></row>
+				<row><label value="Zoom step:" /><hbox><textbox id="zoomStep" size="4"/><label value="%" /></hbox></row>
+				<row><label value="Zoom limit:" /><hbox><textbox id="pixelLimit" size="4"/><label value="pixels" /></hbox></row>
+			</rows>
+		</grid>
+
+		<groupbox>
+			<caption label="View images in:" />
+
+			<radiogroup flex="1">
+				<radio label="New tab" selected="true" />
+				<radio label="New window" selected="false" />
+				<radio label="Current tab/window" selected="false" />
+			</radiogroup>
+		</groupbox>
+
+		<groupbox>
+			<caption label="Default control position" />
+
+			<radiogroup flex="1">
+				<radio label="Top-left" selected="false" />
+				<radio label="Top-right" selected="true" />
+				<radio label="Bottom-left" selected="false" />
+				<radio label="Bottom-right" selected="false" />				
+			</radiogroup>
+		</groupbox>
+
+		<hbox>
+			<spacer flex="1" />
+			<button class="dialog-button" label="OK" default="true"/>
+			<button class="dialog-button" label="Cancel" />
+		</hbox>
+
+	</window>
+
+</overlay>

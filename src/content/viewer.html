@@ -1,0 +1,615 @@
+<html>
+<head>
+<title>zoomFox</title>
+<link media="screen" href="style.css" type="text/css" rel="stylesheet" />
+<link media="screen" href="css/ui-darkness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<script src="jquery-1.4.js"></script>
+<script src="jquery-ui-1.7.2.custom.min.js"></script>
+<script>
+$(document).ready(function(){
+	scrollbarWidth = getScrollbarWidth();
+	refreshScrollControlsPosition();
+	
+	$(".expander").hover(
+		function() {$(this).addClass("expander-hover");}, 
+		function() {$(this).removeClass("expander-hover");}
+    );
+	
+	var buttonSet = $("#background-button-set");
+	for(style in backgroundStyles) {
+		style = backgroundStyles[style];
+		buttonSet.append('<div id="button-'+style+'" class="'+style+'" onClick="changeBackgroundStyle(\''+style+'\')"></div>');
+		//alert(html);
+		//buttonSet.append();
+	}
+	
+	
+/*	$("#zoomControls").draggable({
+		handle: '#zoom-controls-handle',
+		start: function(event, ui) {
+			$("#zoomControls").css({
+				width: $("#zoomControls").width(),
+				height: $("#zoomControls").height()
+			});
+		},
+		drag: function() {
+			refreshFocusBox();
+		},
+		stop: function() {
+			$("#zoomControls").css({
+				width: '',
+				height: ''
+			});
+		}
+	});*/
+});
+</script>
+</head>
+<body onLoad="init();" onResize="refreshFocusBox()" onScroll="refreshFocusBox()" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+
+
+<!-- image -->
+<img src="image.jpg" id="image" />
+
+
+<!-- zoom controls -->
+<div id="zoomControls">
+
+<div id="zoom-controls-handle"></div>
+
+<div align="center"><img src="image.jpg" id="thumb"/></div>
+
+<div id="expander-top" class="expander expander-down-arrow" onClick="toggleCollapseThumbnail()"></div>
+
+<div id="zoomControlButtons">
+	<input type="button" value="Fit" onClick="zoomToFit()" />
+	<input type="button" value="1:1" onClick="zoomTo(100)" />
+	<button type="button" onClick="zoomOut()"><img src="icon_unzoom.png" align="absmiddle"></button>
+	<button type="button" onClick="zoomIn()"><img src="icon_zoom.png" align="absmiddle"></button>
+	<input type="text" id="zoomTextField" size="4" value="100%" onChange="zoomToValue()" id="zoomFactorBox" style="height: 2.15em; vertical-align: 1px"/>
+</div>
+<div id="expander-bottom" class="expander expander-down-arrow expander-round-bottom" onClick="toggleCollapseAdvanced()"></div>
+<div id="advanced-controls">
+
+<fieldset>
+<legend>Background</legend>
+<div id="background-button-set">
+</div>
+</fieldset>
+
+<fieldset id="rotate-fieldset">
+<legend>Rotate</legend>
+<canvas id="rotate-control" width="56" height="56"></canvas>
+<div id="rotate-degrees">270&deg;</div>
+</fieldset>
+
+</div>
+</div>
+
+
+<!-- in focus box -->
+<div id="inFocusBox"><img id="inFocusBoxPixel" src="spacer.png" width="20" height="20"/></div>
+
+
+
+<script>
+
+
+var backgroundStyles = ['bg-default', 'bg-black', 'bg-white', 'bg-grey', 'bg-squares'];
+var mouseX;
+var mouseY;
+var mouseXold;
+var mouseYold;
+var thumbX;
+var thumbY;
+var isMouseDownInImage = 0;
+var isMouseDownInThumb = 0;
+var isMouseInRotateControl = 0;
+var isMouseDownInRotateControl = 0;
+var currentZoom = 100;
+var image = document.getElementById('image');
+var inFocusBox = document.getElementById('inFocusBox');
+var inFocusBoxPixel = document.getElementById('inFocusBoxPixel');
+var thumb = document.getElementById('thumb');
+var originalWidth = image.width;
+var originalHeight = image.height;
+var scrollPositionX = 0;
+var scrollPositionY = 0;
+var positionNames = ['nw', 'ne', 'se', 'sw'];
+controlsMargin = '0.9em';
+var isThumbnailCollapsed = 0;
+var isAdvancedCollapsed = 1;
+var mouseInThumb = false;
+var rotateControlDegrees = 0;
+var rotateControlClickX, rotateControlClickY;
+
+//configurable options
+var currentControlPosition = "ne";
+var pixelLimit = 6000;
+var thumbInitSize = 200;
+var zoomStep = 10;
+
+
+
+window.onmousemove = easyScroll;
+window.addEventListener("DOMMouseScroll", mouseWheelMoved, false);
+
+window.onmouseup = function() {
+  isMouseDownInImage = 0;
+  isMouseDownInThumb = 0;
+  image.style.cursor="default";
+};
+
+image.onmousedown = function() {
+	isMouseDownInImage = 1;
+	image.style.cursor="move";
+	return false;
+};
+
+thumb.onmousedown = function() {
+	isMouseDownInThumb = 1;
+	image.style.cursor="move";
+	return false;
+};
+
+thumb.onmouseover = function() {mouseInThumb = true};
+thumb.onmouseout = function() {mouseInThumb = false};
+
+inFocusBoxPixel.onmousedown = function() {
+	isMouseDownInThumb = 1;
+	image.style.cursor="move";
+	return false;
+};
+
+document.getElementById("rotate-control").onmouseover = function() {
+	console.log("mouse over rotate");
+	isMouseInRotateControl = 1;
+	return false;
+}
+
+document.getElementById("rotate-control").onmouseout = function() {
+	console.log("mouse out of rotate");
+	isMouseInRotateControl = 0;
+	return false;
+}
+
+document.getElementById("rotate-control").onmousedown = function(event) {
+	console.log("mouse down rotate");
+	if(isMouseInRotateControl) {
+		isMouseDownInRotateControl = 1;
+		rotateControlClickX = event.clientX;
+		rotateControlClickY = event.clientY;
+	}
+	return false;
+}
+
+document.getElementById("rotate-control").onmouseup = function() {
+	console.log("mouse up rotate");
+	isMouseDownInRotateControl = 0;
+	return false;
+}
+
+
+function mouseDownImage(){
+  isMouseDownInImage = 1;
+  image.style.cursor="move";
+  return false;
+}
+
+
+
+function init(){
+	var thumb = document.getElementById('thumb');
+
+	originalWidth = document.getElementById('image').width;
+	originalHeight = document.getElementById('image').height;
+
+	if(originalWidth > originalHeight){
+		thumb.setAttribute("width", thumbInitSize);
+		thumb.setAttribute("height", originalHeight*thumbInitSize/originalWidth);
+	} else {
+		thumb.setAttribute("height", thumbInitSize);
+		thumb.setAttribute("width", originalWidth*thumbInitSize/originalHeight);
+	}
+
+	changeBackgroundStyle("bg-default");
+	drawRotateControl();
+	moveControlToPosition(currentControlPosition);
+	refreshFocusBox();
+}
+
+function drawRotateControl(degrees) {
+	if(!degrees) degrees = 0;
+	
+	var canvas = document.getElementById('rotate-control');
+	var ctx = canvas.getContext("2d");
+	var w = canvas.width;
+	var h = canvas.height;
+	
+	//cls
+	ctx.clearRect(0,0,w,h);
+	
+	ctx.translate(w/2, h/2);
+	ctx.rotate(-rotateControlDegrees*Math.PI/180);
+	ctx.translate(-w/2, -h/2);
+	rotateControlDegrees = degrees;
+	
+	//base
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = "rgba(0,0,0,0.5)";
+	ctx.fillStyle = "rgba(128,128,128,0.5)";
+	ctx.beginPath();
+	ctx.arc(w/2,h/2,w/2.2-2,0,Math.PI*2,true);
+	ctx.closePath();
+	ctx.stroke();
+	ctx.fill();
+	
+	//house
+	ctx.translate(w/2, h/2);
+	ctx.rotate(degrees*Math.PI/180);
+	ctx.translate(-w/2, -h/2);
+	
+	ctx.fillStyle = "white";
+
+	ctx.beginPath();
+	ctx.moveTo(28.00377,16.734);
+	ctx.lineTo(10.59752,27.0777);
+	ctx.lineTo(15.62877,27.0777);
+	ctx.lineTo(15.62877,39.2652);
+	ctx.lineTo(25.72252,39.2652);
+	ctx.lineTo(25.72252,33.4527);
+	ctx.lineTo(30.28502,33.4527);
+	ctx.lineTo(30.28502,39.2652);
+	ctx.lineTo(40.37877,39.2652);
+	ctx.lineTo(40.37877,27.0777);
+	ctx.lineTo(45.41002,27.0777);
+	ctx.lineTo(38.12877,22.7652);
+	ctx.lineTo(38.12877,18.2965);
+	ctx.lineTo(34.34752,18.2965);
+	ctx.lineTo(34.34752,20.5152);
+	ctx.lineTo(28.00377,16.734);
+	ctx.closePath();
+	ctx.fill();
+}
+
+function mouseWheelMoved(event){
+  event.preventDefault();
+
+  //up is negative detail
+  //down is positive detail
+
+  var factor;
+  if(event.detail < 0){
+    //factor = 1;
+	zoomIn();
+  } else {
+    //factor = -1;
+	zoomOut();
+  }
+
+  //zoomTo(currentZoom + (zoomStep) * factor);
+}
+
+
+function toggleCollapseAdvanced() {
+	if(isAdvancedCollapsed == 0){
+		isAdvancedCollapsed = 1;
+		$("#advanced-controls").hide("blind", {}, 300);
+		$("#expander-bottom").addClass("expander-down-arrow");
+		$("#expander-bottom").addClass("expander-round-bottom");
+		$("#expander-bottom").removeClass("expander-up-arrow");
+	} else {
+		$("#advanced-controls").show("blind", {}, 300,
+			function() {
+				isAdvancedCollapsed = 0;
+			}
+		);
+		$("#expander-bottom").removeClass("expander-down-arrow");
+		$("#expander-bottom").removeClass("expander-round-bottom");
+		$("#expander-bottom").addClass("expander-up-arrow");
+	}	
+}
+
+function toggleCollapseThumbnail() {
+	if(isThumbnailCollapsed == 0){
+		isThumbnailCollapsed = 1;
+		inFocusBox.style.display = 'none';
+		$("#thumb").hide("blind", {}, 300);
+		$("#expander-top").removeClass("expander-down-arrow");
+		$("#expander-top").addClass("expander-up-arrow");
+		$("#expander-top").addClass("expander-round-top");
+	} else {
+		$("#thumb").show("blind", {}, 300,
+			function() {
+				refreshFocusBox();
+				inFocusBox.style.display = 'block';
+				isThumbnailCollapsed = 0;
+			}
+		);
+		$("#expander-top").addClass("expander-down-arrow");
+		$("#expander-top").removeClass("expander-up-arrow");
+		$("#expander-top").removeClass("expander-round-top");
+	}
+}
+
+function moveControlToPosition(position){
+  var icon = document.getElementById('positionIcon');
+
+  var controls = document.getElementById('zoomControls');
+  if(position == 0){
+    controls.style.bottom = '';
+	controls.style.right = '';
+    controls.style.left = '5px';
+    controls.style.top = '5px';
+  } else if(position == 1){
+    controls.style.left = '';
+	controls.style.bottom = '';
+    controls.style.right = '5px';
+    controls.style.top = '5px';
+  } else if(position == 2){
+    controls.style.left = '';
+	controls.style.top = '';
+    controls.style.right = '5px';
+    controls.style.bottom = '5px';
+  } else if(position == 3){
+    controls.style.top = '';
+	controls.style.right = '';
+    controls.style.left = '5px';
+    controls.style.bottom = '5px';
+  }
+
+  refreshFocusBox();
+}
+
+function refreshFocusBox(){
+
+  var factor = image.width / thumb.width;
+
+  var w, h;
+
+  //width
+  if(image.width < window.innerWidth){
+    inFocusBox.style.left = findPosX(thumb) + 1;
+	w = thumb.width - 3;
+  } else {
+    inFocusBox.style.left = findPosX(thumb) + window.pageXOffset/factor + 1;
+    w = window.innerWidth / factor - 3;
+  }
+
+  //height
+  if(image.height < window.innerHeight){
+    inFocusBox.style.top = findPosY(thumb) + 1;
+    h = thumb.height - 3;
+  } else {
+    inFocusBox.style.top = findPosY(thumb) + window.pageYOffset/factor + 1;    
+    h = window.innerHeight / factor - 3;
+  }
+
+  inFocusBox.style.width = w;
+  inFocusBox.style.height = h;
+  inFocusBoxPixel.width = w + 1;
+  inFocusBoxPixel.height = h;
+}
+
+function easyScroll(event){
+	if(mouseInThumb) return;
+
+	mouseXold = mouseX;
+	mouseYold = mouseY;
+	mouseX = event.clientX;
+	mouseY = event.clientY;
+
+	if(isMouseDownInThumb){
+		thumbScroll(event);
+	
+	} else if(isMouseDownInImage){
+		var dx = mouseX - mouseXold;
+		var dy = mouseY - mouseYold;
+		scrollBy(-dx, -dy);
+		refreshFocusBox();
+		refreshScrollControlsPosition();
+	
+	} else if(isMouseDownInRotateControl) {
+		moveRotateControl(event);
+	}
+}
+
+function moveRotateControl(event) {
+	var dx = event.clientX - rotateControlClickX;
+	var dy = event.clientY - rotateControlClickY;
+
+	u = Math.asin (
+		dx
+		/
+		Math.sqrt(dx*dx + dy*dy)
+	) * 180 / Math.PI;
+	
+	if(dy > 0) u = 180 - u;
+	
+	drawRotateControl(u);
+}
+
+function refreshScrollControlsPosition() {
+	var p = $("#zoomControls").position();
+	if(currentControlPosition == 'ne') {
+		$("#zoomControls").css({top: controlsMargin, right: controlsMargin});
+	} else if(currentControlPosition == 'nw') {
+		$("#zoomControls").css({top: controlsMargin, left: controlsMargin});
+	} else if(currentControlPosition == 'se') {
+		$("#zoomControls").css({bottom: controlsMargin, right: controlsMargin});
+	} else if(currentControlPosition == 'sw') {
+		$("#zoomControls").css({bottom: controlsMargin, left: controlsMargin});
+	} 
+}
+
+function thumbScroll(event){
+  mouseXold = mouseX;
+  mouseYold = mouseY;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+
+  thumbX = findPosX(thumb);
+  thumbY = findPosY(thumb);
+  var factor = image.width / thumb.width;
+
+  if(isMouseDownInThumb){
+    var x = mouseX - thumbX - getStyleWidth(inFocusBox) / 2;
+	var y = mouseY - thumbY - getStyleHeight(inFocusBox) / 2;
+
+	//alert((inFocusBox.style.width/2)+", "+y);
+
+	x *= factor;
+	y *= factor;
+	scrollTo(x, y);
+	refreshFocusBox();
+  }
+}
+
+function zoomToValue(){
+  box = document.getElementById('zoomFactorBox');
+  var factor = $('#zoomTextField').value;
+
+  if(factor.match("\\d+")){
+    factor = factor.match("\\d+");
+    if(factor < 1) {
+      factor=1;
+    }
+    zoomTo(factor);
+  } else {
+    alert("Please provide a number.");
+  }
+}
+
+function getScrollbarWidth() {
+	var scr = null;
+	var inn = null;
+	var wNoScroll = 0;
+	var wScroll = 0;
+
+	// Outer scrolling div
+	scr = document.createElement('div');
+	scr.style.position = 'absolute';
+	scr.style.top = '-1000px';
+	scr.style.left = '-1000px';
+	scr.style.width = '100px';
+	scr.style.height = '50px';
+	// Start with no scrollbar
+	scr.style.overflow = 'hidden';
+
+	// Inner content div
+	inn = document.createElement('div');
+	inn.style.width = '100%';
+	inn.style.height = '200px';
+
+	// Put the inner div in the scrolling div
+	scr.appendChild(inn);
+	// Append the scrolling div to the doc
+	document.body.appendChild(scr);
+
+	// Width of the inner div sans scrollbar
+	wNoScroll = inn.offsetWidth;
+	// Add the scrollbar
+	scr.style.overflow = 'auto';
+	// Width of the inner div width scrollbar
+	wScroll = inn.offsetWidth;
+
+	// Remove the scrolling div from the doc
+	document.body.removeChild(
+		document.body.lastChild);
+
+	// Pixel width of the scroller
+	return (wNoScroll - wScroll);
+}
+
+
+function zoomToFit() {
+  var factorX = 100*(window.innerWidth - scrollbarWidth)/originalWidth;
+  var factorY = 100*(window.innerHeight - scrollbarWidth)/originalHeight;
+
+  zoomTo(Math.min(factorX, factorY));
+}
+
+function zoomIn(){
+  zoomTo(currentZoom + zoomStep);
+}
+
+function zoomOut(){
+  zoomTo(currentZoom - zoomStep);
+}
+
+function zoomTo(factor){
+  if(factor < 1) return;
+
+  if( originalWidth*factor/100 > pixelLimit
+      || originalHeight*factor/100 > pixelLimit ) {
+    return;
+  }
+
+  currentZoom = factor;
+
+  if(factor == 100){
+    image.width = originalWidth;
+	image.height = originalHeight;
+	$('zoomTextField').value = "100%";
+	refreshFocusBox();
+	return;
+  }
+
+  image.width = originalWidth*factor/100;
+  image.height = originalHeight*factor/100;
+  box = document.getElementById('zoomFactorBox');
+  $('zoomTextField').value = Math.round(factor)+"%";
+
+  refreshFocusBox();
+}
+
+function getStyleWidth(obj){
+  if(obj == null) {return null;}
+  return obj.style.width.match("\\d+");
+}
+
+function getStyleHeight(obj){
+  if(obj == null) {return null;}
+  return obj.style.height.match("\\d+");
+}
+
+
+function findPosX(obj)
+{
+	var curleft = 0;
+	if (obj.offsetParent) {
+		while (obj.offsetParent)
+		{
+			curleft += obj.offsetLeft
+			obj = obj.offsetParent;
+		}
+	} else if (obj.x)
+		curleft += obj.x;
+	return curleft;
+}
+
+function findPosY(obj)
+{
+	var curtop = 0;
+	if (obj.offsetParent) {
+		while (obj.offsetParent)
+		{
+			curtop += obj.offsetTop
+			obj = obj.offsetParent;
+		}
+	} else if (obj.y)
+		curtop += obj.y;
+	return curtop;
+}
+
+function changeBackgroundStyle(style) {
+	$("#button-"+$("body").attr("class")).removeClass("background-button-selected");
+	$("body").removeClass();
+	$("body").addClass(style);
+	$("#button-"+style).addClass("background-button-selected");
+}
+
+</script>
+
+</body>
+</html>
