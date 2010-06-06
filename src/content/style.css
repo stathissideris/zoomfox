@@ -15,6 +15,11 @@ html>body {
 	-moz-border-radius: 4px;
 }
 
+#thumb-container {
+	border-left: auto;
+	border-right: auto;
+}
+
 #inFocusBox {
 	position: fixed;
 	top: 5px;

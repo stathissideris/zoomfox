@@ -23,6 +23,9 @@ $(document).ready(function(){
 		//buttonSet.append();
 	}
 	
+	init();
+	
+	//rotate(-90);
 	
 /*	$("#zoomControls").draggable({
 		handle: '#zoom-controls-handle',
@@ -45,19 +48,18 @@ $(document).ready(function(){
 });
 </script>
 </head>
-<body onLoad="init();" onResize="refreshFocusBox()" onScroll="refreshFocusBox()" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<body onResize="refreshFocusBox()" onScroll="refreshFocusBox()" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
 
 
 <!-- image -->
-<img src="image.jpg" id="image" />
-
+<div id="image-container"><img src="image.jpg" id="image" /></div>
 
 <!-- zoom controls -->
 <div id="zoomControls">
 
 <div id="zoom-controls-handle"></div>
 
-<div align="center"><img src="image.jpg" id="thumb"/></div>
+<canvas id="thumb" width="200" height="200"></canvas>
 
 <div id="expander-top" class="expander expander-down-arrow" onClick="toggleCollapseThumbnail()"></div>
 
@@ -111,6 +113,8 @@ var image = document.getElementById('image');
 var inFocusBox = document.getElementById('inFocusBox');
 var inFocusBoxPixel = document.getElementById('inFocusBoxPixel');
 var thumb = document.getElementById('thumb');
+var originalThumbWidth = 0;
+var originalThumbHeight = 0;
 var originalWidth = image.width;
 var originalHeight = image.height;
 var scrollPositionX = 0;
@@ -122,6 +126,7 @@ var isAdvancedCollapsed = 1;
 var mouseInThumb = false;
 var rotateControlDegrees = 0;
 var rotateControlClickX, rotateControlClickY;
+var rotateAngle = -90;
 
 //configurable options
 var currentControlPosition = "ne";
@@ -205,17 +210,50 @@ function init(){
 	originalHeight = document.getElementById('image').height;
 
 	if(originalWidth > originalHeight){
-		thumb.setAttribute("width", thumbInitSize);
-		thumb.setAttribute("height", originalHeight*thumbInitSize/originalWidth);
+		originalThumbWidth = thumbInitSize;		
+		originalThumbHeight = originalHeight*thumbInitSize/originalWidth;
 	} else {
-		thumb.setAttribute("height", thumbInitSize);
-		thumb.setAttribute("width", originalWidth*thumbInitSize/originalHeight);
+		originalThumbWidth = originalWidth*thumbInitSize/originalHeight;
+		originalThumbHeight = thumbInitSize;
 	}
-
+	thumb.setAttribute("width", originalThumbWidth);
+	thumb.setAttribute("height", originalThumbHeight);
+	
 	changeBackgroundStyle("bg-default");
 	drawRotateControl();
 	moveControlToPosition(currentControlPosition);
+	refreshThumbnail(rotateAngle);
 	refreshFocusBox();
+}
+
+function refreshThumbnail(rotateAngle) {
+	if(rotateAngle == 90 || rotateAngle == -90) {
+		$("#thumb")
+			.attr("width", originalThumbHeight)
+			.attr("height", originalThumbWidth);
+	} else if(rotateAngle == 0 || rotateAngle == 180) {
+		$("#thumb")
+			.attr("width", originalThumbWidth)
+			.attr("height", originalThumbHeight);
+	}
+
+	var canvas = document.getElementById("thumb");
+	var ctx = canvas.getContext("2d");
+	var image = new Image();
+	image.src = $("#image").attr("src");
+	image.onload = function() {
+		
+		ctx.translate(
+			$("#thumb").attr("width") / 2,
+			$("#thumb").attr("height") / 2
+		);
+		ctx.rotate(rotateAngle * Math.PI / 180);
+		ctx.translate(
+			- $("#thumb").attr("height") / 2,
+			- $("#thumb").attr("width") / 2
+		);
+		ctx.drawImage(image, 0, 0, $("#thumb").height(), $("#thumb").width());
+	};
 }
 
 function drawRotateControl(degrees) {
@@ -607,6 +645,17 @@ function changeBackgroundStyle(style) {
 	$("body").removeClass();
 	$("body").addClass(style);
 	$("#button-"+style).addClass("background-button-selected");
+}
+
+function rotate(degrees) {
+	$("#thumb-container").width($("#thumb").attr("height"));
+	$("#thumb-container").height($("#thumb").attr("width"));
+	$("#thumb-container").css("padding-top", "40px");
+	$("#image-container").css("margin-top", "200px");
+	
+	$("#image").css("-moz-transform", "rotate("+degrees+"deg)");
+	$("#thumb").css("-moz-transform", "rotate("+degrees+"deg)");
+	$("#inFocusBox").css("-moz-transform", "rotate("+degrees+"deg)");
 }
 
 </script>
