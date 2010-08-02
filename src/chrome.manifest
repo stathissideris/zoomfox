@@ -1,0 +1,3 @@
+
+overlay	chrome://browser/content/browser.xul	chrome://zoomfox/content/zoomfox.xul
+content	zoomfox	jar:chrome/zoomFox.jar!/content/

@@ -10,7 +10,7 @@
 		if(!gContextMenu) {return;}
 
 		zoomFoxMenu = document.getElementById("zoomFoxMenuItem");
-		zoomFoxMenu.hidden = !gContextMenu.onImage;
+		//zoomFoxMenu.hidden = !gContextMenu.onImage;
 	}
 
 	function jc(msg) {
@@ -57,7 +57,7 @@
 		return str;
 	}
 
-	window.addEventListener("load", function() {
+	/*window.addEventListener("load", function() {
 
 		var zfShowZoomControls = true;
 		//var prefManager = new ZF_PrefManager();
@@ -67,16 +67,16 @@
 
 		document.getElementById("contentAreaContextMenu").addEventListener("popupshowing", zoomFoxMenu, false);
 		
-	}, false); // end window.addEventListener("load"...)
+	}, false);*/ // end window.addEventListener("load"...)
 
     ]]>
-    </script> 
-
+    </script>
+	
 	<popup id="contentAreaContextMenu">
 		<menuitem
 			id="zoomFoxMenuItem"
 			label="View with zoomFox"
-			hidden="true"
+			hidden="false"
 			insertbefore="context-sep-copyimage"
 			oncommand="goToViewer();"/>
 	</popup>

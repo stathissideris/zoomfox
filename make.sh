@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="0.85"
+VERSION="0.8.1"
 TARGET="zoomfox_$VERSION.xpi"
 echo $TARGET
 
@@ -11,6 +11,7 @@ cd ../make-dir/
 mkdir chrome
 mv zoomFox.jar chrome
 cp ../src/install.rdf .
+cp ../src/chrome.manifest .
 zip -r $TARGET *
 mv $TARGET ..
 cd ..
