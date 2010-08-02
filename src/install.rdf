@@ -7,7 +7,7 @@
 
     <em:name>zoomFox</em:name>
     <em:id>{79fcaa13-5f29-4c33-aad7-6c48c175760a}</em:id>
-    <em:version>0.85</em:version>
+    <em:version>0.8.1</em:version>
 
 	<em:description>Adds a context menu item for viewing images using advanced controls (thumb view, zoom, easy scroll etc).</em:description>
 	<em:creator>Stathis Sideris</em:creator>
